@@ -11,6 +11,7 @@
 #define min(a,b) ((a)<(b)?(a):(b))
 
 Arbre234 maxNoeudAbr = NULL;
+Arbre234 pereGlobal = NULL;
 int maxNoeudInt = INT_MIN;
 
 
@@ -120,6 +121,7 @@ Arbre234 RechercherCle (Arbre234 a, int cle)
       if (a->cles[1] == cle) {
           return a;
       }
+      pereGlobal = a;
       if (cle > a->cles[1]) {
           return RechercherCle(a->fils[2],cle);
       }
@@ -129,6 +131,7 @@ Arbre234 RechercherCle (Arbre234 a, int cle)
       if (a->cles[0] == cle || a->cles[1] == cle) {
           return a;
       }
+      pereGlobal = a;
       if (cle < a->cles[0]) {
           return RechercherCle(a->fils[0],cle);
       }
@@ -141,6 +144,7 @@ Arbre234 RechercherCle (Arbre234 a, int cle)
       if (a->cles[0] == cle || a->cles[1] == cle || a->cles[2] == cle) {
           return a;
       }
+      pereGlobal = a;
       if (cle < a->cles[0]) {
           return RechercherCle(a->fils[0],cle);
       }
@@ -180,8 +184,8 @@ void AnalyseStructureArbre (Arbre234 a, int *feuilles, int *noeud2, int *noeud3,
       } else {
         AnalyseStructureArbre(a->fils[1], feuilles, noeud2, noeud3, noeud4);
         AnalyseStructureArbre(a->fils[2], feuilles, noeud2, noeud3, noeud4);
-      }
     }
+}
     if(a->t == 3){
       (*noeud3)++;
       if(estFeuille(a)){
@@ -352,15 +356,479 @@ void Affichage_Cles_Triees_NonRecursive (Arbre234 a)
     }
 }
 
+int cleAppartient(Arbre234 a, int cle) {
+    if (a == NULL || a->t == 0) {
+        return 0;
+    }
+    if (a->t == 2) {
+        return a->cles[1] == cle;
+    }
+    if (a->t == 3) {
+        return a->cles[1] == cle || a->cles[0] == cle;
+    }
+    if (a->t == 4) {
+        return a->cles[0] == cle || a->cles[1] == cle || a->cles[2] == cle;
+    }
+    return 0;
+}
 
+int posCleA(Arbre234 a, int cle) {
+    if (a == NULL || a->t == 0) {
+        return -1;
+    }
+    if (a->t == 2) {
+        return (a->cles[1] == cle ? 1 : -1);
+    }
+    if (a->t == 3) {
+        return (a->cles[1] == cle ? 1 : (a->cles[0] == cle ? 0 : -1));
+    }
+    if (a->t == 4) {
+        return (a->cles[0] == cle ? 0 : (a->cles[1] == cle ? 1 : (a->cles[2] == cle ? 2 : -1)));
+    }
+    return -1;
+}
 
-void Detruire_Cle (Arbre234 *a, int cle)
+int trouverPos(Arbre234 a, int cle) {
+    if (a == NULL || a->t == 0) {
+        return -1;
+    }
+    if (a->t == 2) {
+        return (cleAppartient(a->fils[1],cle) ? 1 : (cleAppartient(a->fils[2],cle) ? 2 : -1));
+    }
+    if (a->t == 3) {
+        return (cleAppartient(a->fils[0],cle) ? 0 : (cleAppartient(a->fils[1],cle) ? 1 : (cleAppartient(a->fils[2],cle) ? 2 : -1)));
+    }
+    if (a->t == 4) {
+        return (cleAppartient(a->fils[0],cle) ? 0 : (cleAppartient(a->fils[1],cle) ? 1 : (cleAppartient(a->fils[2],cle) ? 2 : (cleAppartient(a->fils[3],cle) ? 3 : -1))));
+    }
+    return -1;
+}
+
+void pivotPereFils(Arbre234 pere, int pos) {
+    if (pos == -1) {
+        return;
+    }
+    Arbre234 fils = pere->fils[pos];
+        if (pere->t == 2) {
+            if (pos == 1) {
+                if (pere->fils[2]->t > 2) { //pivote
+                    if (pere->fils[2]->t == 3) {
+                        pere->fils[2]->t = 2;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[2]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[2]->t == 4) {
+                        pere->fils[2]->t = 3;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[2]->cles[0];
+                        pere->fils[2]->cles[0] = pere->fils[2]->cles[1];
+                        pere->fils[2]->cles[1] = pere->fils[2]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(fils->fils[i]);
+                    // }
+                    fils->t = 0;
+                    pere->t = 3;
+
+                    pere->cles[0] = pere->cles[1];
+                    pere->cles[1] = pere->fils[2]->cles[1];
+
+                    // for (int i=0; i<4; i++) {
+                    //     free(pere->fils[2]->fils[i]);
+                    // }
+                    pere->fils[2]->t = 0;
+                    return;
+                }
+            }
+            if (pos == 2) {
+                if (pere->fils[1]->t > 2) { //pivote
+                    if (pere->fils[1]->t == 3) {
+                        pere->fils[1]->t = 2;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[1]->cles[1];
+                        pere->fils[1]->cles[1] = pere->fils[1]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[1]->t == 4) {
+                        pere->fils[1]->t = 3;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[1]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(fils->fils[i]);
+                    // }
+                    fils->t = 0;
+                    pere->t = 3;
+
+                    pere->cles[0] = pere->fils[1]->cles[1];
+
+                    // for (int i=0; i<4; i++) {
+                    //     free(pere->fils[1]->fils[i]);
+                    // }
+                    pere->fils[1]->t = 0;
+                    return;
+                }
+            }
+        }
+        if (pere->t == 3) {
+            if (pos == 0) {
+                if (pere->fils[1]->t > 2) { //pivote
+                    if (pere->fils[1]->t == 3) {
+                        pere->fils[1]->t = 2;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[0];
+                        pere->cles[0] = pere->fils[1]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[1]->t == 4) {
+                        pere->fils[1]->t = 3;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[0];
+                        pere->cles[0] = pere->fils[1]->cles[0];
+                        pere->fils[1]->cles[0] = pere->fils[1]->cles[1];
+                        pere->fils[1]->cles[1] = pere->fils[1]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(fils->fils[i]);
+                    // }
+                    fils->t = 0;
+
+                    pere->t = 2;
+                    pere->fils[1]->cles[0] = pere->cles[0];
+                    pere->fils[1]->t = 3;
+                    return;
+                }
+            }
+            if (pos == 1) {
+                if (pere->fils[2]->t > 2) { //pivote a droite
+                    if (pere->fils[2]->t == 3) {
+                        pere->fils[2]->t = 2;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[2]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[2]->t == 4) {
+                        pere->fils[2]->t = 3;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[2]->cles[0];
+                        pere->fils[2]->cles[0] = pere->fils[2]->cles[1];
+                        pere->fils[2]->cles[1] = pere->fils[2]->cles[2];
+                        return;
+                    }
+                } else if (pere->fils[0]->t > 2) { //pivote a gauche
+                    if (pere->fils[0]->t == 3) {
+                        pere->fils[0]->t = 2;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[0];
+                        pere->cles[0] = pere->fils[0]->cles[1];
+                        pere->fils[0]->cles[1] = pere->fils[0]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[0]->t == 4) {
+                        pere->fils[0]->t = 3;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[0];
+                        pere->cles[0] = pere->fils[0]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(pere->fils[0]->fils[i]);
+                    // }
+                    pere->fils[0]->t = 0;
+
+                    pere->t = 2;
+                    fils->t = 3;
+                    fils->cles[1] = pere->cles[0];
+                    // pere->cles[1] = pere->cles[0];
+                    fils->cles[0] = pere->fils[0]->cles[1];
+                    // pere->fils[1]->cles[1] = pere->fils[0]->cles[1];
+                    return;
+                }
+            }
+            if (pos == 2) {
+                if (pere->fils[1]->t > 2) { //pivote
+                    if (pere->fils[1]->t == 3) {
+                        pere->fils[1]->t = 2;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[1]->cles[1];
+                        pere->fils[1]->cles[1] = pere->fils[1]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[1]->t == 4) {
+                        pere->fils[1]->t = 3;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[1]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(pere->fils[0]->fils[i]);
+                    // }
+                    pere->fils[0]->t = 0;
+
+                    fils->t = 3;
+                    fils->cles[0] = pere->fils[1]->cles[1];
+                    fils->cles[1] = pere->cles[1];
+
+                    pere->t = 2;
+                    pere->cles[1] = pere->cles[0];
+
+                    pere->fils[1]->cles[1] = pere->fils[0]->cles[1];
+                    return;
+                }
+            }
+        }
+        if (pere->t == 4) {
+            if (pos == 0) { //a faire juste apres
+                if (pere->fils[1]->t > 2) { //pivote
+                    if (pere->fils[1]->t == 3) {
+                        pere->fils[1]->t = 2;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[0];
+                        pere->cles[0] = pere->fils[1]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[1]->t == 4) {
+                        pere->fils[1]->t = 3;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[0];
+                        pere->cles[0] = pere->fils[1]->cles[0];
+                        pere->fils[1]->cles[0] = pere->fils[1]->cles[1];
+                        pere->fils[1]->cles[1] = pere->fils[1]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(fils->fils[i]);
+                    // }
+                    fils->t = 0;
+
+                    pere->t = 3;
+                    pere->fils[1]->t = 3;
+                    pere->fils[1]->cles[0] = pere->cles[0];
+
+                    pere->fils[0] = pere->fils[1];
+                    pere->fils[1] = pere->fils[2];
+                    pere->fils[2] = pere->fils[3];
+                    pere->fils[3] = fils;
+
+                    pere->cles[0] = pere->cles[1];
+                    pere->cles[1] = pere->cles[2];
+                    return;
+                }
+            }
+            if (pos == 1) {
+                if (pere->fils[2]->t > 2) { //pivote a droite
+                    if (pere->fils[2]->t == 3) {
+                        pere->fils[2]->t = 2;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[2]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[2]->t == 4) {
+                        pere->fils[2]->t = 3;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[2]->cles[0];
+                        pere->fils[2]->cles[0] = pere->fils[2]->cles[1];
+                        pere->fils[2]->cles[1] = pere->fils[2]->cles[2];
+                        return;
+                    }
+                } else if (pere->fils[0]->t > 2) { //pivote a gauche
+                    if (pere->fils[0]->t == 3) {
+                        pere->fils[0]->t = 2;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[0];
+                        pere->cles[0] = pere->fils[0]->cles[1];
+                        pere->fils[0]->cles[1] = pere->fils[0]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[0]->t == 4) {
+                        pere->fils[0]->t = 3;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[0];
+                        pere->cles[0] = pere->fils[0]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(fils->fils[i]);
+                    // }
+                    fils->t = 0;
+                    pere->t = 3;
+                    pere->fils[0]->t = 3;
+
+                    pere->fils[0]->cles[0] = pere->fils[0]->cles[1];
+                    pere->fils[0]->cles[1] = pere->cles[0];
+
+                    pere->cles[0] = pere->cles[1];
+                    pere->cles[1] = pere->cles[2];
+
+                    pere->fils[1] = pere->fils[2];
+                    pere->fils[2] = pere->fils[3];
+                    pere->fils[3] = fils;
+                    return;
+                }
+            }
+            if (pos == 2) {
+                if (pere->fils[3]->t > 2) { //pivote a droite
+                    if (pere->fils[3]->t == 3) {
+                        pere->fils[3]->t = 2;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[2];
+                        pere->cles[2] = pere->fils[3]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[3]->t == 4) {
+                        pere->fils[3]->t = 3;
+                        // fils->t = 3;
+                        // fils->cles[0] = fils->cles[1];
+                        fils->cles[1] = pere->cles[2];
+                        pere->cles[2] = pere->fils[3]->cles[0];
+                        pere->fils[3]->cles[0] = pere->fils[3]->cles[1];
+                        pere->fils[3]->cles[1] = pere->fils[3]->cles[2];
+                        return;
+                    }
+                } else if (pere->fils[1]->t > 2) { //pivote a gauche
+                    if (pere->fils[1]->t == 3) {
+                        pere->fils[1]->t = 2;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[1]->cles[1];
+                        pere->fils[1]->cles[1] = pere->fils[1]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[1]->t == 4) {
+                        pere->fils[1]->t = 3;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[1];
+                        pere->cles[1] = pere->fils[1]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(fils->fils[i]);
+                    // }
+                    fils->t = 0;
+                    pere->t = 3;
+                    pere->fils[3]->t = 3;
+
+                    pere->fils[3]->cles[0] = pere->cles[2];
+
+                    pere->fils[2] = pere->fils[3];
+                    pere->fils[3] = fils;
+                    return;
+                }
+            }
+            if (pos == 3) {
+                if (pere->fils[2]->t > 2) { //pivote
+                    if (pere->fils[2]->t == 3) {
+                        pere->fils[2]->t = 2;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[2];
+                        pere->cles[2] = pere->fils[2]->cles[1];
+                        pere->fils[2]->cles[1] = pere->fils[2]->cles[0];
+                        return;
+                    }
+                    if (pere->fils[2]->t == 4) {
+                        pere->fils[2]->t = 3;
+                        // fils->t = 3;
+                        fils->cles[1] = pere->cles[2];
+                        pere->cles[2] = pere->fils[2]->cles[2];
+                        return;
+                    }
+                } else { //fusionne
+                    // suppr tous les fils de cle
+                    // for (int i=0; i<4; i++) {
+                    //     free(fils->fils[i]);
+                    // }
+                    fils->t = 0;
+
+                    pere->t = 3;
+                    pere->fils[2]->t = 3;
+                    pere->fils[2]->cles[0] = pere->fils[2]->cles[1];
+                    pere->fils[2]->cles[1] = pere->cles[3];
+                    return;
+                }
+            }
+        }
+}
+
+// void cleFilsàPere(Arbre234 pere, Arbre234 fils){
+//
+// }
+
+void Detruire_Cle (Arbre234 a, int cle)
 {
-  /*
-    retirer la cle de l'arbre a
-  */
+    Arbre234 b = RechercherCle(a, cle);
+    if(b == NULL){
+        return ;
+    }
+    if(b->t == 0){
+        return ;
+    }
+    int posCle = trouverPos(pereGlobal,cle);
+    int posCleFils = posCleA(b,cle);
+    if (estFeuille(b)) {
+        if (b->t == 3) { // Peut enlever 1 gartuit
+            b->t = b->t-1;
+            if (posCleFils == 1) {
+                b->cles[1] = b->cles[0];
+            }
+            return;
+        } else if (b->t == 4) { // doit changer le pere
+            b->t = b->t-1;
+            if (posCleFils == 0) {
+                b->cles[0] = b->cles[1];
+                b->cles[1] = b->cles[2];
+            }
+            if (posCleFils == 1) {
+                b->cles[1] = b->cles[2];
+            }
+        } else if (b->t == 2) {
+            pivotPereFils(pereGlobal, posCle);
+            // Detruire_Cle(pereGlobal, cle);
+        }
+        return ;
+    } else {
 
-  return ;
+    }
 }
 
 
@@ -381,19 +849,19 @@ int main (int argc, char **argv)
   printf ("==== Afficher arbre ====\n") ;
   afficher_arbre (a, 0) ;
 
-  printf ("\n=== NombreCles ===\n");
-  printf ("Nombre de cle : %d\n",NombreCles(a));
+  // printf ("\n=== NombreCles ===\n");
+  // printf ("Nombre de cle : %d\n",NombreCles(a));
 
-  printf("\n=== CleMax ===\n");
-  printf("Cle Max : %d\n",CleMax(a));
+  // printf("\n=== CleMax ===\n");
+  // printf("Cle Max : %d\n",CleMax(a));
+  //
+  // printf("\n=== CleMin ===\n");
+  // printf("Cle Min : %d\n",CleMin(a));
 
-  printf("\n=== CleMin ===\n");
-  printf("Cle Min : %d\n",CleMin(a));
-
-  printf ("\n==== RechercherCle ====\n") ;
-  int n;
-  scanf("%d",&n);
-  afficher_arbre (RechercherCle(a,n), 0) ;
+  // printf ("\n==== RechercherCle ====\n") ;
+  // int n;
+  // scanf("%d",&n);
+  // afficher_arbre (RechercherCle(a,n), 0) ;
 
   printf("\n=== AnalyseStructureArbre ===\n");
   int feuilles = 0;
@@ -403,18 +871,30 @@ int main (int argc, char **argv)
   AnalyseStructureArbre(a,&feuilles,&noeud2,&noeud3,&noeud4);
   printf("Feuilles : %d\nNoeuds 2 : %d\nNoeuds 3 : %d\nNoeuds 4 : %d\n",feuilles,noeud2,noeud3,noeud4);
 
-  printf ("\n==== noeud_max ====\n") ;
-  afficher_arbre(noeud_max(a),0);
+  // printf ("\n==== noeud_max ====\n") ;
+  // afficher_arbre(noeud_max(a),0);
 
-  printf ("\n=== Afficher_Cles_Largeur ===\n") ;
-  Afficher_Cles_Largeur(a);
-  printf("\n");
+  // printf ("\n=== Afficher_Cles_Largeur ===\n") ;
+  // Afficher_Cles_Largeur(a);
+  // printf("\n");
 
   printf ("\n=== Affichage_Cles_Triees_Recursive ===\n") ;
   Affichage_Cles_Triees_Recursive(a);
   printf("\n");
 
-  printf ("\n=== Affichage_Cles_Triees_NonRecursive ===\n") ;
-  Affichage_Cles_Triees_NonRecursive(a);
-  printf("\n");
+  // printf ("\n=== Affichage_Cles_Triees_NonRecursive ===\n") ;
+  // Affichage_Cles_Triees_NonRecursive(a);
+  // printf("\n");
+
+  printf ("\n==== Detruire_Cle ====\n") ;
+  int n;
+  scanf("%d",&n);
+  while (n!=-1) {
+      Detruire_Cle(a,n) ;
+      afficher_arbre(a,0);
+      printf("\n");
+      Affichage_Cles_Triees_Recursive(a);
+      printf("\n");
+      scanf("%d",&n);
+  }
 }
