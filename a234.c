@@ -431,21 +431,26 @@ void pivotPereFils(Arbre234 pere, int pos) {
                         return;
                     }
                 } else { //fusionne
-                    // suppr tous les fils de cle
-                    // for (int i=0; i<4; i++) {
-                    //     free(fils->fils[i]);
-                    // }
-                    fils->t = 0;
-                    pere->t = 3;
+                    if (estFeuille(pere->fils[2])) {
+                        fils->t = 0;
+                        pere->t = 3;
 
-                    pere->cles[0] = pere->cles[1];
-                    pere->cles[1] = pere->fils[2]->cles[1];
+                        pere->cles[0] = pere->cles[1];
+                        pere->cles[1] = pere->fils[2]->cles[1];
 
-                    // for (int i=0; i<4; i++) {
-                    //     free(pere->fils[2]->fils[i]);
-                    // }
-                    pere->fils[2]->t = 0;
-                    return;
+                        pere->fils[2]->t = 0;
+                        return;
+                    } else {
+                        pere->t = 3;
+
+                        pere->cles[0] = pere->cles[1];
+                        pere->cles[1] = pere->fils[2]->cles[1];
+
+                        pere->fils[0] = fils;
+                        pere->fils[1] = pere->fils[2]->fils[1];
+                        pere->fils[2] = pere->fils[2]->fils[2];
+                        return;
+                    }
                 }
             }
             if (pos == 2) {
@@ -466,20 +471,23 @@ void pivotPereFils(Arbre234 pere, int pos) {
                         return;
                     }
                 } else { //fusionne
-                    // suppr tous les fils de cle
-                    // for (int i=0; i<4; i++) {
-                    //     free(fils->fils[i]);
-                    // }
-                    fils->t = 0;
-                    pere->t = 3;
+                    if (estFeuille(pere->fils[1])) {
+                        fils->t = 0;
+                        pere->t = 3;
 
-                    pere->cles[0] = pere->fils[1]->cles[1];
+                        pere->cles[0] = pere->fils[1]->cles[1];
 
-                    // for (int i=0; i<4; i++) {
-                    //     free(pere->fils[1]->fils[i]);
-                    // }
-                    pere->fils[1]->t = 0;
-                    return;
+                        pere->fils[1]->t = 0;
+                        return;
+                    } else {
+                        pere->t = 3;
+
+                        pere->cles[0] = pere->fils[1]->cles[1];
+
+                        pere->fils[0] = pere->fils[1]->fils[1];
+                        pere->fils[1] = pere->fils[1]->fils[2];
+                        return;
+                    }
                 }
             }
         }
@@ -505,19 +513,27 @@ void pivotPereFils(Arbre234 pere, int pos) {
                         return;
                     }
                 } else { //fusionne
-                    // suppr tous les fils de cle
-                    // for (int i=0; i<4; i++) {
-                    //     free(fils->fils[i]);
-                    // }
-                    fils->t = 0;
+                    if (estFeuille(pere->fils[1])) {
+                        fils->t = 0;
 
-                    pere->t = 2;
-                    pere->fils[1]->cles[0] = pere->cles[0];
-                    pere->fils[1]->t = 3;
-                    return;
+                        pere->t = 2;
+                        pere->fils[1]->cles[0] = pere->cles[0];
+                        pere->fils[1]->t = 3;
+                        return;
+                    } else {
+                        pere->t = 4;
+
+                        pere->cles[2] = pere->cles[1];
+                        pere->cles[1] = pere->fils[1]->cles[1];
+
+                        pere->fils[3] = pere->fils[2];
+                        pere->fils[2] = pere->fils[1]->fils[2];
+                        pere->fils[1] = pere->fils[1]->fils[1];
+                        return;
+                    }
                 }
             }
-            if (pos == 1) {
+            if (pos == 1) {//a faire
                 if (pere->fils[2]->t > 2) { //pivote a droite
                     if (pere->fils[2]->t == 3) {
                         pere->fils[2]->t = 2;
@@ -587,26 +603,37 @@ void pivotPereFils(Arbre234 pere, int pos) {
                         return;
                     }
                 } else { //fusionne
-                    // suppr tous les fils de cle
-                    // for (int i=0; i<4; i++) {
-                    //     free(pere->fils[0]->fils[i]);
-                    // }
-                    pere->fils[0]->t = 0;
+                    if (estFeuille(pere->fils[1])) {
+                        pere->fils[1]->t = pere->fils[0]->t;
+                        pere->fils[0]->t = 0;
 
-                    fils->t = 3;
-                    fils->cles[0] = pere->fils[1]->cles[1];
-                    fils->cles[1] = pere->cles[1];
+                        fils->t = 3;
+                        fils->cles[0] = pere->fils[1]->cles[1];
+                        fils->cles[1] = pere->cles[1];
 
-                    pere->t = 2;
-                    pere->cles[1] = pere->cles[0];
+                        pere->t = 2;
+                        pere->cles[1] = pere->cles[0];
 
-                    pere->fils[1]->cles[1] = pere->fils[0]->cles[1];
-                    return;
+                        pere->fils[1]->cles[0] = pere->fils[0]->cles[0];
+                        pere->fils[1]->cles[1] = pere->fils[0]->cles[1];
+                        pere->fils[1]->cles[2] = pere->fils[0]->cles[2];
+                        return;
+                    } else {
+                        pere->t = 4;
+
+                        pere->cles[2] = pere->cles[1];
+                        pere->cles[1] = pere->fils[1]->cles[1];
+
+                        pere->fils[3] = pere->fils[2];
+                        pere->fils[2] = pere->fils[1]->fils[2];
+                        pere->fils[1] = pere->fils[1]->fils[1];
+                        return;
+                    }
                 }
             }
         }
         if (pere->t == 4) {
-            if (pos == 0) { //a faire juste apres
+            if (pos == 0) {
                 if (pere->fils[1]->t > 2) { //pivote
                     if (pere->fils[1]->t == 3) {
                         pere->fils[1]->t = 2;
@@ -627,27 +654,41 @@ void pivotPereFils(Arbre234 pere, int pos) {
                         return;
                     }
                 } else { //fusionne
-                    // suppr tous les fils de cle
-                    // for (int i=0; i<4; i++) {
-                    //     free(fils->fils[i]);
-                    // }
-                    fils->t = 0;
+                    if (estFeuille(pere->fils[1])) {
+                        fils->t = 0;
 
-                    pere->t = 3;
-                    pere->fils[1]->t = 3;
-                    pere->fils[1]->cles[0] = pere->cles[0];
+                        pere->t = 3;
+                        pere->fils[1]->t = 3;
+                        pere->fils[1]->cles[0] = pere->cles[0];
 
-                    pere->fils[0] = pere->fils[1];
-                    pere->fils[1] = pere->fils[2];
-                    pere->fils[2] = pere->fils[3];
-                    pere->fils[3] = fils;
+                        pere->fils[0] = pere->fils[1];
+                        pere->fils[1] = pere->fils[2];
+                        pere->fils[2] = pere->fils[3];
+                        pere->fils[3] = fils;
 
-                    pere->cles[0] = pere->cles[1];
-                    pere->cles[1] = pere->cles[2];
-                    return;
+                        pere->cles[0] = pere->cles[1];
+                        pere->cles[1] = pere->cles[2];
+                        return;
+                    } else {
+                        pere->t = 3;
+                        pere->fils[1]->t = 3;
+
+                        pere->fils[1]->cles[0] = pere->cles[0];
+
+                        pere->cles[0] = pere->cles[1];
+                        pere->cles[1] = pere->cles[2];
+
+                        pere->fils[1]->fils[0] = fils;
+
+                        pere->fils[0] = pere->fils[1];
+                        pere->fils[1] = pere->fils[2];
+                        pere->fils[2] = pere->fils[3];
+                        pere->fils[3] = allouer_noeud();
+                        return;
+                    }
                 }
             }
-            if (pos == 1) {
+            if (pos == 1) {// a faire
                 if (pere->fils[2]->t > 2) { //pivote a droite
                     if (pere->fils[2]->t == 3) {
                         pere->fils[2]->t = 2;
@@ -704,7 +745,7 @@ void pivotPereFils(Arbre234 pere, int pos) {
                     return;
                 }
             }
-            if (pos == 2) {
+            if (pos == 2) {// a faire
                 if (pere->fils[3]->t > 2) { //pivote a droite
                     if (pere->fils[3]->t == 3) {
                         pere->fils[3]->t = 2;
@@ -774,17 +815,29 @@ void pivotPereFils(Arbre234 pere, int pos) {
                         return;
                     }
                 } else { //fusionne
-                    // suppr tous les fils de cle
-                    // for (int i=0; i<4; i++) {
-                    //     free(fils->fils[i]);
-                    // }
-                    fils->t = 0;
+                    if (estFeuille(pere->fils[2])) {
+                        fils->t = 0;
 
-                    pere->t = 3;
-                    pere->fils[2]->t = 3;
-                    pere->fils[2]->cles[0] = pere->fils[2]->cles[1];
-                    pere->fils[2]->cles[1] = pere->cles[3];
-                    return;
+                        pere->t = 3;
+                        pere->fils[2]->t = 3;
+                        pere->fils[2]->cles[0] = pere->fils[2]->cles[1];
+                        pere->fils[2]->cles[1] = pere->cles[3];
+                        return;
+                    } else {
+                        pere->t = 3;
+                        pere->fils[2]->t = 3;
+
+                        pere->fils[2]->cles[0] = pere->fils[2]->cles[1];
+                        pere->fils[2]->cles[1] = pere->cles[2];
+
+                        pere->fils[2]->fils[0] = pere->fils[2]->fils[1];
+                        pere->fils[2]->fils[1] = pere->fils[2]->fils[2];
+                        pere->fils[2]->fils[2] = fils;
+
+                        pere->fils[3] = allouer_noeud();
+                        afficher_arbre(pere,0);
+                        return;
+                    }
                 }
             }
         }
@@ -823,7 +876,7 @@ void Detruire_Cle (Arbre234 a, int cle)
             }
         } else if (b->t == 2) {
             pivotPereFils(pereGlobal, posCle);
-            // Detruire_Cle(pereGlobal, cle);
+            Detruire_Cle(pereGlobal, cle);
         }
         return ;
     } else {
