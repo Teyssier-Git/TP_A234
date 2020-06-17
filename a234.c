@@ -5,7 +5,6 @@
 
 #include "file.h"
 #include "pile.h"
-// #include "a234.h"
 
 #define max(a,b) ((a)>(b)?(a):(b))
 #define min(a,b) ((a)<(b)?(a):(b))
@@ -902,19 +901,19 @@ int main (int argc, char **argv)
   printf ("==== Afficher arbre ====\n") ;
   afficher_arbre (a, 0) ;
 
-  // printf ("\n=== NombreCles ===\n");
-  // printf ("Nombre de cle : %d\n",NombreCles(a));
+  printf ("\n=== NombreCles ===\n");
+  printf ("Nombre de cle : %d\n",NombreCles(a));
 
-  // printf("\n=== CleMax ===\n");
-  // printf("Cle Max : %d\n",CleMax(a));
-  //
-  // printf("\n=== CleMin ===\n");
-  // printf("Cle Min : %d\n",CleMin(a));
+  printf("\n=== CleMax ===\n");
+  printf("Cle Max : %d\n",CleMax(a));
 
-  // printf ("\n==== RechercherCle ====\n") ;
-  // int n;
-  // scanf("%d",&n);
-  // afficher_arbre (RechercherCle(a,n), 0) ;
+  printf("\n=== CleMin ===\n");
+  printf("Cle Min : %d\n",CleMin(a));
+
+  printf ("\n==== RechercherCle ====\n") ;
+  int n;
+  scanf("%d",&n);
+  afficher_arbre (RechercherCle(a,n), 0) ;
 
   printf("\n=== AnalyseStructureArbre ===\n");
   int feuilles = 0;
@@ -924,23 +923,27 @@ int main (int argc, char **argv)
   AnalyseStructureArbre(a,&feuilles,&noeud2,&noeud3,&noeud4);
   printf("Feuilles : %d\nNoeuds 2 : %d\nNoeuds 3 : %d\nNoeuds 4 : %d\n",feuilles,noeud2,noeud3,noeud4);
 
-  // printf ("\n==== noeud_max ====\n") ;
-  // afficher_arbre(noeud_max(a),0);
+  printf ("\n==== noeud_max ====\n") ;
+  afficher_arbre(noeud_max(a),0);
 
-  // printf ("\n=== Afficher_Cles_Largeur ===\n") ;
-  // Afficher_Cles_Largeur(a);
-  // printf("\n");
+  printf ("\n=== Afficher_Cles_Largeur ===\n") ;
+  Afficher_Cles_Largeur(a);
+  printf("\n");
 
   printf ("\n=== Affichage_Cles_Triees_Recursive ===\n") ;
   Affichage_Cles_Triees_Recursive(a);
   printf("\n");
 
-  // printf ("\n=== Affichage_Cles_Triees_NonRecursive ===\n") ;
-  // Affichage_Cles_Triees_NonRecursive(a);
-  // printf("\n");
+  printf ("\n=== Affichage_Cles_Triees_NonRecursive ===\n") ;
+  Affichage_Cles_Triees_NonRecursive(a);
+  printf("\n");
 
   printf ("\n==== Detruire_Cle ====\n") ;
-  int n;
+  printf("Give a key to delete it from the tree, -1 to stop\n");
+  afficher_arbre(a,0);
+  printf("\n");
+  Affichage_Cles_Triees_Recursive(a);
+  printf("\n");
   scanf("%d",&n);
   while (n!=-1) {
       Detruire_Cle(a,n) ;
